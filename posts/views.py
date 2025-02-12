@@ -1,5 +1,7 @@
-from django.shortcuts import render, HttpResponse, Post
+from django.shortcuts import render, HttpResponse
 import random
+from django.views.generic import ListView
+from .models import Post
 
 
 def test_view(request):
@@ -18,9 +20,13 @@ def post_list_view(request):
     return render(request, "posts/post_list.html", context={"posts": posts})
 
 
-def post_detail_view(request, post_title):
-    post = Post.objects.get(title=post_title)
+def post_detail_view(request, post_id):
+    post = Post.objects.get(id=post_id)
     return render(request, "posts/post_detail.html", context={"post":  post})
 
+class PostListView(ListView):
+    model = Post
+    template_name = 'post_list.html'
+    context_object_name = 'posts'
 
 
