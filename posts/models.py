@@ -7,11 +7,13 @@ from django.db  import models
 
 объекты по условию не уникальному(несколько) -- Post.objects.filter(title="title")
 
+создать объект - Post.objects.create(title="fghj", content="njkl")
+
 """
 
     # =======
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
@@ -32,11 +34,8 @@ class Post(models.Model):
     rate = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-
-    # Связь с Category (один ко многим)
-    category = models.ForeignKey(Category, related_name='posts', on_delete=models.CASCADE)
-    # Связь с Tag (многие ко многим)
-    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
+    category = models.ForeignKey(Category, related_name='posts', on_delete=models.CASCADE)# Связь с Category (один ко многим)
+    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)# Связь с Tag (многие ко многим)
 
 
     def __str__(self):
