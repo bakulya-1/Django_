@@ -5,6 +5,7 @@ from django.views.generic import ListView
 from posts.models import Post
 
 from posts.forms import PostCreateForm
+from django.contrib.auth.decorators import login_required
 
 
 def test_view(request):
@@ -18,6 +19,7 @@ def html_view(request):
         return None
 
 
+@login_required(login_url="/login/")
 def post_list_view(request):
     if request.method == "GET":
         posts = Post.objects.all()
@@ -28,6 +30,7 @@ def post_list_view(request):
 
 
 
+@login_required(login_url="/login/")
 def post_detail_view(request, post_id):
     if request.method == "GET":
         post = Post.objects.get(id=post_id)
@@ -39,6 +42,7 @@ class PostListView(ListView):
     context_object_name = 'posts'
 
 
+@login_required(login_url="/login/")
 def post_create_view(request):
     if request.method == "GET":
         form = PostCreateForm()
@@ -55,7 +59,7 @@ def post_create_view(request):
         if post:
             return redirect("/posts/")
         else:
-            return HttpResponse("Post не был получен")
+            return HttpResponse("Post не был создан")
 
 
 
