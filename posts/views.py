@@ -1,15 +1,35 @@
 
 from django.shortcuts import render, HttpResponse, redirect
 import random
-from django.views.generic import ListView
+
 from posts.models import Post
 
-from posts.forms import PostCreateForm
+from django.views.generic import ListView
+from posts.forms import PostCreateForm, SearchForm
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
+
+"""
+
+posts = [post1, post2, post3, post4, post5, post6, post7, post8, post9, post10]
+limit = 2
+page = 3
+
+start = (page - 1) * limit
+end = page * limit
+
+start = (3 - 1) *2 = 4
+end = 3 * 2 = 6
+
+
+"""
+
 
 
 def test_view(request):
     return HttpResponse(f"Добро пожаловать на мою страницу:) {random.randint(1, 100)}")
+
 
 
 def html_view(request):
@@ -21,13 +41,47 @@ def html_view(request):
 
 @login_required(login_url="/login/")
 def post_list_view(request):
+    form = SearchForm()
+    query_params = request.GET
+    limit = 3
     if request.method == "GET":
+        print(query_params)
         posts = Post.objects.all()
-        print(posts)
-        for post in posts:
-            print(post.title, post.rate, post.content)
-        return render(request, "posts/post_list.html", context={"posts": posts})
+        search = query_params.get("search")
+        category_id = query_params.get("category")
+        tags = request.GET.getlist("tags")
+        ordering = query_params.get("ordering")
+        page = int(query_params.get("page")) if query_params.get("page") else 1
+        print(tags)
+        if search:
+            posts = posts.filter(
+                Q(title_icontains=search) | Q(content_icontains=search)
+            )
+        if category_id:
+            posts = posts.filter(category_id=category_id)
 
+        if tags:
+            tags = [int(tag) for tag in tags]
+            posts = posts.filter(tag_id_in=tags)
+
+        if ordering:
+            posts = posts.order_by(ordering)
+
+        max_pages = posts.count() / limit
+        if round(max_pages) < max_pages:
+            max_pages = round(max_pages) + 1
+        else:
+            max_pages = round(max_pages)
+
+        start = (page - 1) * limit
+        end = page * limit
+        posts = posts[start:end]
+
+        context_data = {"posts": posts, "form": form, "max_pages": range(1, max_pages + 1)}
+        return render(
+            request, "posts/post_list.html",
+            context=context_data
+        )
 
 
 @login_required(login_url="/login/")

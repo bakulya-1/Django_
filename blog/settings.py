@@ -129,6 +129,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Папка, куда будут собраны все статические файлы в продакшн-режиме
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 # Настройки медиа-файлов (изображения, видео ...)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
