@@ -46,6 +46,11 @@ class SearchForm(forms.Form):
     }))
 
 
+class PostUpdateForm(forms.ModelForm):
+    class Mets:
+        model = Post
+        fields = ["title", "content", "image", "rate"]
+
 
 
 

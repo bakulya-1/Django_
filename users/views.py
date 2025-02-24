@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from users.forms import RegisterForm, LoginForm
 from django.contrib.auth import login, authenticate, logout
+from users.models import Profile
 
 
 def register_view(request):
@@ -10,15 +11,26 @@ def register_view(request):
         form = RegisterForm()
         return render(request, "users/register.html", context={"form": form})
     if request.method == "POST":
-        form = RegisterForm(request.POST)
+        form = RegisterForm(request.POST, request.FILES)
         if not form.is_valid():
             return  render(request, "users/register.html", context={"form": form})
         elif form.is_valid():
             username = form.cleaned_data.get("username")
             email = form.cleaned_data.get("email")
             password = form.cleaned_data.get("password")
-            User.objects.create_user(email=email, password=password, username=username)
-            return redirect("/Login/")
+            avatar = form.cleaned_data.get("avatar")
+            age = form.cleaned_data.get("age")
+            if not User.objects.filter(email=email).exists():
+                user = User.objects.create_user(email=email, password=password, username=username)
+                if user:
+                    Profile.objects.create(user=user, age=age, avatar=avatar)
+                elif not user:
+                    form.add_error(None, "Unknown error")
+                    return render(request, "users/register.html", context={"form": form})
+                return redirect("/Login/")
+            else:
+                form.add_error(None, "User with given email already exists")
+                return render(request, "users/register.html", context={"form": form})
 
 
 def login_view(request):
@@ -45,6 +57,13 @@ def logout_view(request):
     logout(request)
     return redirect("/")
 
+
+
+def profile_view(request):
+    if request.method == "GET":
+        user = request.user
+        posts = user.posts.all()
+        return render(request, "users/profile.html", context={"user": user, "posts": posts})
 
 
 

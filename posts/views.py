@@ -5,8 +5,10 @@ import random
 from posts.models import Post
 
 from django.views.generic import ListView
-from posts.forms import PostCreateForm, SearchForm
+from posts.forms import PostCreateForm, SearchForm, PostUpdateForm
 from django.contrib.auth.decorators import login_required
+from django.views import View
+from django.views.generic import DetailView, CreateView
 from django.db.models import Q
 
 
@@ -37,6 +39,11 @@ def html_view(request):
         return render(request, "main.html")
     else:
         return None
+
+
+class TestView(View):
+    def get(self, request):
+        return HttpResponse(f"Hello World {random.randint(1, 100)}")
 
 
 @login_required(login_url="/login/")
@@ -80,8 +87,13 @@ def post_list_view(request):
         context_data = {"posts": posts, "form": form, "max_pages": range(1, max_pages + 1)}
         return render(
             request, "posts/post_list.html",
-            context=context_data
-        )
+            context=context_data)
+
+
+class PostListView(ListView):
+    model = Post
+    template_name = "posts/post_list/html"
+    context_object_name = "posts"
 
 
 @login_required(login_url="/login/")
@@ -90,10 +102,13 @@ def post_detail_view(request, post_id):
         post = Post.objects.get(id=post_id)
         return render(request, "posts/post_detail.html", context={"post":  post})
 
-class PostListView(ListView):
+
+class PostDetailView(DetailView):
     model = Post
-    template_name = 'post_list.html'
-    context_object_name = 'posts'
+    template_name = "posts/post_detail.html"
+    context_object_name = "post"
+    pk_url_kwarg = "post_id"
+
 
 
 @login_required(login_url="/login/")
@@ -114,6 +129,37 @@ def post_create_view(request):
             return redirect("/posts/")
         else:
             return HttpResponse("Post не был создан")
+
+
+class PostCreateView(CreateView):
+    model = Post
+    success_url = "/posts/class/"
+    form_class = PostUpdateForm
+    template_name = "posts/post_create.html"
+
+
+@login_required(login_url="/login/")
+def post_update_view(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id, author=request.user)
+    except Post.DoesNotExist:
+        return HttpResponse("Post не найден")
+    if request.method == "GET":
+        form = PostUpdateForm(instance=post)
+        return render(request, "posts/post_update.html", context={"form": form})
+    if request.method == "POST":
+        form = PostUpdateForm(request.POST, request.FILES, instance=post)
+        if not form.is_valid():
+            return render(request, "posts/post_update.html", context={"form": form})
+        elif form.is_valid():
+            form.save()
+            return redirect("/posts/")
+        else:
+            return HttpResponse("Post не был обновлён")
+
+
+
+
 
 
 
