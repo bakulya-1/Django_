@@ -29,6 +29,7 @@ urlpatterns = [
     path("posts/<int:post_id>/class/", PostDetailView.as_view()),
     path("posts/class/", PostListView.as_view()),
     path("test/class/", TestView.as_view()),
+
     path("admin/", admin.site.urls),
     path("test/", test_view),
     path("html/", html_view),
